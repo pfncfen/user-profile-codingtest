@@ -6,7 +6,7 @@
 }
 
 .logo {
-  height: 6em;
+  height: 4em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
@@ -36,8 +36,22 @@
   }
 }
 
-.card {
-  padding: 2em;
+.form {
+  padding: 0 2em 2em 2em;
+}
+
+.form-item {
+  padding: 20px;
+}
+
+.form-item button:first-child {
+  margin-right: 20px;
+}
+
+.form-item-label {
+  display: inline-block;
+  text-align: left;
+  width: 70px;
 }
 
 .read-the-docs {

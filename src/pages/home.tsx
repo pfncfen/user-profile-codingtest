@@ -1,18 +1,67 @@
-import { useState } from 'react';
-import reactLogo from '../assets/react.svg';
-import blockletLogo from '../assets/blocklet.svg';
-import viteLogo from '../assets/vite.svg';
 import './home.css';
+
+import { useEffect, useState } from 'react';
+
+import blockletLogo from '../assets/blocklet.svg';
+import reactLogo from '../assets/react.svg';
+import viteLogo from '../assets/vite.svg';
 import api from '../libs/api';
 
-function Home() {
-  const [count, setCount] = useState(0);
+enum InputType {
+  Username = 'username',
+  Email = 'email',
+  Phone = 'phone',
+}
 
-  async function getApiData() {
-    const { data } = await api.get('/api/data');
-    const { message } = data;
-    alert(`Message from api: ${message}`);
+type Profile = {
+  username: string;
+  email: string;
+  phone: string;
+};
+
+const DefaultProfile: Profile = {
+  username: 'default user',
+  email: 'default@xxx.com',
+  phone: '138xxxxxxxx',
+};
+
+function Home() {
+  const [editMode, setEditMode] = useState(false);
+  const [profile, setProfile] = useState<Profile>(DefaultProfile);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, type: InputType) => {
+    const { value } = e.target;
+    setProfile((prev) => {
+      return {
+        ...prev,
+        [type]: value,
+      };
+    });
+  };
+
+  async function getUserProfileData() {
+    const { data } = await api.get('/api/profile');
+    const { results } = data;
+
+    if (results && results.length > 0) {
+      setProfile(results[0]);
+    }
   }
+
+  async function setUserProfileData() {
+    const { data } = await api.post('/api/profile', profile);
+    return data;
+  }
+
+  const handleSaveClick = () => {
+    setUserProfileData().then((res) => {
+      if (res === 'OK') setEditMode(false);
+    });
+  };
+
+  useEffect(() => {
+    getUserProfileData();
+  }, []);
 
   return (
     <>
@@ -27,21 +76,47 @@ function Home() {
           <img src={blockletLogo} className="logo blocklet" alt="Blocklet logo" />
         </a>
       </div>
-      <h1>Vite + React + Blocklet</h1>
-      <div className="card">
-        <button type="button" onClick={() => setCount((currentCount) => currentCount + 1)}>
-          count is {count}
-        </button>
-        <br />
-        <br />
-        <button type="button" onClick={getApiData}>
-          Get API Data
-        </button>
-        <p>
-          Edit <code>src/app.tsx</code> and save to test HMR
-        </p>
+      <h1>User profile</h1>
+      <div className="form">
+        <div className="form-item">
+          <span className="form-item-label">用户名：</span>
+          <input
+            placeholder="请输入用户名"
+            disabled={!editMode}
+            value={profile.username}
+            onChange={(e) => handleInputChange(e, InputType.Username)}
+          />
+        </div>
+        <div className="form-item">
+          <span className="form-item-label">邮箱：</span>
+          <input
+            placeholder="请输入邮箱"
+            disabled={!editMode}
+            value={profile.email}
+            onChange={(e) => handleInputChange(e, InputType.Email)}
+          />
+        </div>
+        <div className="form-item">
+          <span className="form-item-label">手机号：</span>
+          <input
+            placeholder="请输入手机号"
+            disabled={!editMode}
+            value={profile.phone}
+            onChange={(e) => handleInputChange(e, InputType.Phone)}
+          />
+        </div>
+        <div className="form-item">
+          {editMode ? (
+            <button type="button" onClick={() => handleSaveClick()}>
+              保存
+            </button>
+          ) : (
+            <button type="button" onClick={() => setEditMode(!editMode)}>
+              编辑
+            </button>
+          )}
+        </div>
       </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
     </>
   );
 }
